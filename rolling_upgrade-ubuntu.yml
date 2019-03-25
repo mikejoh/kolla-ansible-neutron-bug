@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    neutron_rolling_upgrade_services: ["neutron", "neutron-fwaas", "neutron-vpnaas"]
+    config_strategy: "COPY_ALWAYS"
+  tasks:
+  - name: Running Neutron database contract container
+    docker_container:
+      detach: no
+      env:
+        KOLLA_UPGRADE:
+        NEUTRON_DB_CONTRACT:
+        KOLLA_CONFIG_STRATEGY: "{{ config_strategy }}"
+        NEUTRON_ROLLING_UPGRADE_SERVICES: "{{ neutron_rolling_upgrade_services }}"
+      image: fake-neutron:ubuntu
+      labels:
+        UPGRADE:
+      name: "fake-neutron"
+      restart_policy: no
+    register: fake_neutron_output
+    run_once: True
+    delegate_to: localhost
+
+  - debug: msg="{{ fake_neutron_output.ansible_facts.docker_container.Output }}"
